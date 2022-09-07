@@ -1,0 +1,41 @@
+###################
+# BUILD FOR PRODUCTION
+###################
+FROM node:18-alpine AS build
+
+WORKDIR /build
+
+RUN npm i -g pnpm
+RUN pnpm config set store-dir /app/.pnpm-store
+RUN mkdir frontend
+
+COPY ./frontend/package.json ./frontend
+COPY ./package.json ./
+COPY ./.npmrc ./
+COPY ./pnpm-lock.yaml ./
+COPY ./pnpm-workspace.yaml ./
+
+RUN pnpm install --frozen-lockfile
+COPY . .
+
+ENV NODE_ENV production
+
+RUN cd frontend && pnpm build
+
+###################
+# PRODUCTION
+###################
+FROM nginx:1.22
+
+WORKDIR /app
+
+COPY ./nginx/nginx.conf /etc/nginx
+
+# COPY ./nginx/templates/nginx.conf.template /etc/nginx/templates/
+COPY --from=builder /build/frontend/dist /usr/share/nginx
+
+RUN mkdir -p /log/nginx
+
+# COPY ./nginx/entrypoint.sh ./
+# ENTRYPOINT ["/bin/bash", "./entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]
