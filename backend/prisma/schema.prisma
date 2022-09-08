@@ -49,19 +49,28 @@ model ProblemTestcase {
 }
 
 model Submission {
-  id         Int       @id @default(autoincrement())
-  problem    Problem   @relation(fields: [problemId], references: [id])
-  problemId  Int       @map("problem_id")
+  id         Int        @id @default(autoincrement())
+  problem    Problem    @relation(fields: [problemId], references: [id])
+  problemId  Int        @map("problem_id")
   code       String
-  language   String
-  shared     Boolean   @default(false)
-  ipAddr     String    @map("ip_addr")
-  createTime DateTime  @default(now()) @map("create_time")
-  updateTime DateTime  @updatedAt @map("update_time")
+  language   Language[]
+  shared     Boolean    @default(false)
+  ipAddr     String     @map("ip_addr")
+  createTime DateTime   @default(now()) @map("create_time")
+  updateTime DateTime   @updatedAt @map("update_time")
 
   SubmissionResult SubmissionResult[]
 
   @@map("submission")
+}
+
+enum Language {
+  C
+  Cpp
+  Python2
+  Python3
+  Golang
+  Java
 }
 
 model SubmissionResult {
