@@ -9,3 +9,70 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Problem {
+  id                Int      @id @default(autoincrement())
+  title             String
+  description       String
+  inputDescription  String   @map("input_description")
+  outputDescription String   @map("output_description")
+  hint              String
+  languages         Json
+  timeLimit         Int      @map("time_limit")
+  memoryLimit       Int      @map("memory_limit")
+  difficulty        String
+  source            Json
+  shared            Boolean  @default(false)
+  submissionNum     Int      @default(0) @map("submission_num")
+  acceptedNum       Int      @default(0) @map("accepted_num")
+  score             Int      @default(0)
+  createTime        DateTime @default(now()) @map("create_time")
+  updateTime        DateTime @updatedAt @map("update_time")
+
+  ProblemTestcase ProblemTestcase[]
+  Submission      Submission[]
+
+  @@map("problem")
+}
+
+model ProblemTestcase {
+  id         Int      @id @default(autoincrement())
+  problem    Problem  @relation(fields: [problemId], references: [id])
+  problemId  Int      @map("problem_id")
+  input      String
+  output     String
+  score      Int      @default(0)
+  createTime DateTime @default(now()) @map("create_time")
+  updateTime DateTime @updatedAt @map("update_time")
+
+  @@map("problem_testcase")
+}
+
+model Submission {
+  id         Int       @id @default(autoincrement())
+  problem    Problem   @relation(fields: [problemId], references: [id])
+  problemId  Int       @map("problem_id")
+  code       String
+  language   String
+  shared     Boolean   @default(false)
+  ipAddr     String    @map("ip_addr")
+  createTime DateTime  @default(now()) @map("create_time")
+  updateTime DateTime  @updatedAt @map("update_time")
+
+  SubmissionResult SubmissionResult[]
+
+  @@map("submission")
+}
+
+model SubmissionResult {
+  id           Int        @id @default(autoincrement())
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  submissionId Int        @map("submission_id")
+  result       String
+  acceptedNum  Int        @map("accepted_num")
+  totalScore   Int        @map("total_score")
+  createTime   DateTime   @default(now()) @map("create_time")
+  updateTime   DateTime   @updatedAt @map("update_time")
+
+  @@map("submssion_result")
+}

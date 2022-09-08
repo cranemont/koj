@@ -5,7 +5,7 @@ services:
     container_name: nginx
     restart: unless-stopped
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf # for debug
       - ./log/nginx:/log/nginx
     environment:
       - SERVER1=nest1
@@ -27,6 +27,8 @@ services:
       - POSTGRES_PASSWORD=skku
       - POSTGRES_USER=skku
       - POSTGRES_DB=skku
+    ports:
+      - 20000:5432
   # redis:
   # rabbitmq:
   backend1:
