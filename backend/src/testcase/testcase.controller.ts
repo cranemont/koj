@@ -1,4 +1,36 @@
-import { Controller } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post
+} from '@nestjs/common'
+import { CreateTestcaseDto } from './dto/create-testcase.dto'
+import { CreateTestcasesDto } from './dto/create-testcases.dto'
+import { TestcaseService } from './testcase.service'
+@Controller()
+export class TestcaseController {
+  constructor(private readonly testcaseService: TestcaseService) {}
 
-@Controller('testcase')
-export class TestcaseController {}
+  @Get('testcase/:id')
+  async getTestcase(@Param('id', ParseIntPipe) id: number) {
+    return this.testcaseService.getTestcase({ id })
+  }
+
+  @Get('testcase/problem/:id')
+  async getTestcasesByProblemId(@Param('id', ParseIntPipe) id: number) {
+    return this.testcaseService.getTestcases({ where: { problemId: id } })
+  }
+
+  @Post('testcase')
+  async createTestcase(@Body() createstcaseDto: CreateTestcaseDto) {
+    return this.testcaseService.createTestcase(createstcaseDto)
+  }
+
+  @Post('testcases')
+  async createTestCases(@Body() createTestcasesDto: CreateTestcasesDto) {
+    console.log(createTestcasesDto.problemId)
+    return this.testcaseService.createTestcases(createTestcasesDto)
+  }
+}
