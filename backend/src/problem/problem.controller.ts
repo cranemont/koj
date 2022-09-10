@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -30,8 +31,16 @@ export class ProblemController {
     return this.problemService.createProblem(createProblemDto)
   }
 
-  @Put('problem')
-  async updateProblem(@Body() updateProblemDto: UpdateProblemDto) {
+  @Put('problem/:id')
+  async updateProblem(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProblemDto: UpdateProblemDto
+  ) {
     return this.problemService.updateProblem(updateProblemDto)
+  }
+
+  @Delete('problem/:id')
+  async deleteProblem(@Param('id', ParseIntPipe) id: number) {
+    return this.problemService.deleteProblem({ id })
   }
 }

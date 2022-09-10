@@ -45,4 +45,12 @@ export class ProblemService {
       data: dto
     })
   }
+
+  async deleteProblem(
+    problemWhereUniqueInput: Prisma.ProblemWhereUniqueInput
+  ): Promise<Problem | null> {
+    return await this.prisma.problem.delete({
+      where: problemWhereUniqueInput
+    })
+  }
 }
