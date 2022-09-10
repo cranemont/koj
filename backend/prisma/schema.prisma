@@ -29,23 +29,24 @@ model Problem {
   createTime        DateTime @default(now()) @map("create_time")
   updateTime        DateTime @updatedAt @map("update_time")
 
-  ProblemTestcase ProblemTestcase[]
-  Submission      Submission[]
+  Testcase   Testcase[]
+  Submission Submission[]
 
   @@map("problem")
 }
 
-model ProblemTestcase {
+model Testcase {
   id         Int      @id @default(autoincrement())
   problem    Problem  @relation(fields: [problemId], references: [id])
   problemId  Int      @map("problem_id")
+  order      Int
   input      String
   output     String
   score      Int      @default(0)
   createTime DateTime @default(now()) @map("create_time")
   updateTime DateTime @updatedAt @map("update_time")
 
-  @@map("problem_testcase")
+  @@map("testcase")
 }
 
 model Submission {
