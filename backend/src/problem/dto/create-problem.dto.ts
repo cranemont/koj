@@ -1,6 +1,6 @@
 import { Prisma, Language } from '@prisma/client'
 
-export class CreateProblemDto implements Prisma.ProblemCreateInput {
+export class CreateProblemDto {
   title: string
   description: string
   inputDescription: string
@@ -15,6 +15,4 @@ export class CreateProblemDto implements Prisma.ProblemCreateInput {
   submissionNum?: number
   acceptedNum?: number
   score?: number
-  ProblemTestcase?: Prisma.ProblemTestcaseCreateNestedManyWithoutProblemInput
-  Submission?: Prisma.SubmissionCreateNestedManyWithoutProblemInput
 }

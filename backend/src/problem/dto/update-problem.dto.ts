@@ -1,6 +1,6 @@
 import { Language, Prisma } from '@prisma/client'
 
-export class UpdateProblemDto implements Prisma.ProblemUpdateInput {
+export class UpdateProblemDto {
   id: number
   title: string
   description: string
