@@ -44,7 +44,7 @@ export class TestcaseService {
     const { problemId, testcases } = dto
     console.log(testcases)
     const data: CreateTestcaseDto[] = testcases.map((val, idx) => {
-      var ret: CreateTestcaseDto = <CreateTestcaseDto>val
+      const ret: CreateTestcaseDto = <CreateTestcaseDto>val
       ret.order = idx
       ret.problemId = problemId
       return ret
