@@ -17,6 +17,11 @@ import { SubmissionService } from './submission.service'
           }
         ],
         uri: config.get('AMQP_URI'),
+        channels: {
+          'result-consume-channel': {
+            prefetchCount: 1
+          }
+        },
         connectionInitOptions: { wait: false }
       }),
       inject: [ConfigService]
