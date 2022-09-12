@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   nginx:
-    image: coc0a25/next-nginx:dev
+    image: coc0a25/next-nginx
     container_name: nginx
     restart: unless-stopped
     volumes:
@@ -36,11 +36,13 @@ services:
     container_name: nest1
     restart: unless-stopped
     ports:
-      - 10001:3000
-    environment:
-      - POSTGRES_PASSWORD=skku
-      - POSTGRES_USER=skku
-      - POSTGRES_DB=skku
+      - 10010:3000
+    # environment:
+    #   - POSTGRES_PASSWORD=skku
+    #   - POSTGRES_USER=skku
+    #   - POSTGRES_DB=skku
+    #   - POSTGRES_HOST=localhost
+    #   - POSTGRES_PORT=20000
   # backend2:
   #   image: coc0a25/next-backend:dev
   #   container_name: nest2
@@ -59,5 +61,5 @@ services:
   #   restart: unless-stopped
   #   ports:
   #     - 10004:3000
-  judge-manager:
-    image: coc0a25/judge-manager:dev
+  # judge-manager:
+  #   image: coc0a25/judge-manager:dev

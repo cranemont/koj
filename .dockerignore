@@ -5,3 +5,6 @@ pnpm-debug.log
 dist
 .pnpm-store
 ./backend/node_modules
+data
+log
+logs
