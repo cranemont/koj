@@ -17,7 +17,7 @@ model Problem {
   inputDescription  String   @map("input_description")
   outputDescription String   @map("output_description")
   hint              String
-  languages         Json
+  languages         Language[]
   timeLimit         Int      @map("time_limit")
   memoryLimit       Int      @map("memory_limit")
   difficulty        String
@@ -54,7 +54,7 @@ model Submission {
   problem    Problem    @relation(fields: [problemId], references: [id])
   problemId  Int        @map("problem_id")
   code       String
-  language   Language[]
+  language   Language
   shared     Boolean    @default(false)
   ipAddr     String     @map("ip_addr")
   createTime DateTime   @default(now()) @map("create_time")
