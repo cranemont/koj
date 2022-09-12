@@ -32,7 +32,7 @@ WORKDIR /app
 COPY ./nginx/nginx.conf /etc/nginx
 
 # COPY ./nginx/templates/nginx.conf.template /etc/nginx/templates/
-COPY --from=builder /build/frontend/dist /usr/share/nginx
+COPY --from=build /build/frontend/dist /usr/share/nginx
 
 RUN mkdir -p /log/nginx
 
