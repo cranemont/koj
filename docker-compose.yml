@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   nginx:
-    image: coc0a25/next-nginx
+    image: coc0a25/next-nginx:dev
     container_name: nginx
     restart: unless-stopped
     volumes:
@@ -14,9 +14,6 @@ services:
       - SERVER4=nest4
     ports:
       - 10000:80
-      # - 80:80 # for production
-    # deploy:
-      # some docker swarm config
   db:
     image: postgres:14-alpine
     container_name: postgres
@@ -29,7 +26,6 @@ services:
       - POSTGRES_DB=skku
     ports:
       - 20000:5432
-  # redis:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
@@ -40,18 +36,38 @@ services:
       - RABBITMQ_ERLANG_COOKIE=RabbitMQ-My-Cookies
       - RABBITMQ_DEFAULT_USER=skku
       - RABBITMQ_DEFAULT_PASS=1234
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports: 
+      - 6379:6379
   backend1:
     image: coc0a25/next-backend:dev
     container_name: nest1
-    restart: unless-stopped
+    # restart: unless-stopped
     ports:
       - 10010:3000
-    # environment:
-    #   - POSTGRES_PASSWORD=skku
-    #   - POSTGRES_USER=skku
-    #   - POSTGRES_DB=skku
-    #   - POSTGRES_HOST=localhost
-    #   - POSTGRES_PORT=20000
+    environment:
+      - RABBITMQ_USER=skku
+      - RABBITMQ_PASS=1234
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+  judge-server:
+    container_name: judge-server
+    image: coc0a25/judge-server:dev
+    environment:
+      - TESTCASE_SERVER_URL=http://nest1:3000/testcase/problem/
+      - TESTCASE_SERVER_AUTH_TOKEN=AUTH_TOKEN
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_DEFAULT_USER=skku
+      - RABBITMQ_DEFAULT_PASS=1234
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    cpuset: "0,1,2"
+
+  
+
   # backend2:
   #   image: coc0a25/next-backend:dev
   #   container_name: nest2
@@ -70,5 +86,4 @@ services:
   #   restart: unless-stopped
   #   ports:
   #     - 10004:3000
-  # judge-manager:
-  #   image: coc0a25/judge-manager:dev
+
