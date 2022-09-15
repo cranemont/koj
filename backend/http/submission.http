@@ -1,0 +1,9 @@
+POST http://localhost:10000/api/submission HTTP/1.1
+Content-Type: application/json; charset=UTF-8
+
+{
+  "problemId": 1,
+  "code": "#include <stdio.h>\n\nint main (void) {\nint a=0; scanf(\"%d\", &a);\nprintf(\"%d\t\\n\", a);\n\nreturn 0;\n}\n",
+  "language": "C",
+  "shared": false
+}

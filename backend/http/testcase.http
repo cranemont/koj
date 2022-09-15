@@ -1,10 +1,10 @@
-GET http://localhost:3000/testcase/1 HTTP/1.1
+GET http://localhost:10010/testcase/1 HTTP/1.1
 
 ###
-GET http://localhost:3000/testcase/problem/1 HTTP/1.1
+GET http://localhost:10010/testcase/problem/1 HTTP/1.1
 
 ###
-POST http://localhost:3000/testcases HTTP/1.1
+POST http://localhost:10010/testcases HTTP/1.1
 Content-Type: application/json; charset=UTF-8
 
 {

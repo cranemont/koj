@@ -1,12 +1,12 @@
-GET http://localhost:3000/problem/1 HTTP/1.1
+GET http://localhost:10010/problem/1 HTTP/1.1
 
 ###
-GET http://localhost:3000/problems HTTP/1.1
+GET http://localhost:10010/problems HTTP/1.1
 
 ###
-POST http://localhost:3000/problem HTTP/1.1
-
+POST http://localhost:10010/problem HTTP/1.1
 Content-Type: application/json; charset=UTF-8
+
 {
   "title": "Hello World!",
   "description": "hello world",
@@ -21,7 +21,7 @@ Content-Type: application/json; charset=UTF-8
 }
 
 ###
-PUT http://localhost:3000/problem/1 HTTP/1.1
+PUT http://localhost:10010/problem/1 HTTP/1.1
 Content-Type: application/json; charset=UTF-8
 
 {
@@ -31,7 +31,7 @@ Content-Type: application/json; charset=UTF-8
   "inputDescription": "none",
   "outputDescription": "print hello world",
   "hint": "hint",
-  "languages": ["Cpp", "Python3", "Java"],
+  "languages": ["C", "Cpp", "Python3", "Java"],
   "timeLimit": 1000,
   "memoryLimit": 256,
   "difficulty": "Level1",
@@ -39,4 +39,4 @@ Content-Type: application/json; charset=UTF-8
 }
 
 ###
-DELETE http://localhost:3000/problem/2 HTTP/1.1
+DELETE http://localhost:10010/problem/2 HTTP/1.1
