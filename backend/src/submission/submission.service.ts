@@ -53,6 +53,7 @@ export class SubmissionService {
     })
 
     const judgeRequest = new JudgeRequestDto(
+      submission.id,
       submission.code,
       submission.language,
       submission.problemId,
