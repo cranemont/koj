@@ -3,7 +3,10 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { SubmissionController } from './submission.controller'
 import { SubmissionService } from './submission.service'
-import { PUBLISH_CHANNEL, CONSUME_CHANNEL } from './rabbitmq.constants'
+import {
+  PUBLISH_CHANNEL,
+  CONSUME_CHANNEL
+} from './constants/rabbitmq.constants'
 
 @Module({
   imports: [
