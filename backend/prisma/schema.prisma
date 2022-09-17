@@ -11,23 +11,23 @@ datasource db {
 }
 
 model Problem {
-  id                Int      @id @default(autoincrement())
+  id                Int        @id @default(autoincrement())
   title             String
   description       String
-  inputDescription  String   @map("input_description")
-  outputDescription String   @map("output_description")
+  inputDescription  String     @map("input_description")
+  outputDescription String     @map("output_description")
   hint              String
   languages         Language[]
-  timeLimit         Int      @map("time_limit")
-  memoryLimit       Int      @map("memory_limit")
+  timeLimit         Int        @map("time_limit")
+  memoryLimit       Int        @map("memory_limit")
   difficulty        String
   source            Json
-  shared            Boolean  @default(false)
-  submissionNum     Int      @default(0) @map("submission_num")
-  acceptedNum       Int      @default(0) @map("accepted_num")
-  score             Int      @default(0)
-  createTime        DateTime @default(now()) @map("create_time")
-  updateTime        DateTime @updatedAt @map("update_time")
+  shared            Boolean    @default(false)
+  submissionNum     Int        @default(0) @map("submission_num")
+  acceptedNum       Int        @default(0) @map("accepted_num")
+  score             Int        @default(0)
+  createTime        DateTime   @default(now()) @map("create_time")
+  updateTime        DateTime   @updatedAt @map("update_time")
 
   Testcase   Testcase[]
   Submission Submission[]
@@ -50,15 +50,15 @@ model Testcase {
 }
 
 model Submission {
-  id         Int        @id @default(autoincrement())
-  problem    Problem    @relation(fields: [problemId], references: [id])
-  problemId  Int        @map("problem_id")
+  id         Int      @id @default(autoincrement())
+  problem    Problem  @relation(fields: [problemId], references: [id])
+  problemId  Int      @map("problem_id")
   code       String
   language   Language
-  shared     Boolean    @default(false)
-  ipAddr     String     @map("ip_addr")
-  createTime DateTime   @default(now()) @map("create_time")
-  updateTime DateTime   @updatedAt @map("update_time")
+  shared     Boolean  @default(false)
+  ipAddr     String   @map("ip_addr")
+  createTime DateTime @default(now()) @map("create_time")
+  updateTime DateTime @updatedAt @map("update_time")
 
   SubmissionResult SubmissionResult[]
 
@@ -75,14 +75,26 @@ enum Language {
 }
 
 model SubmissionResult {
-  id           Int        @id @default(autoincrement())
-  submission   Submission @relation(fields: [submissionId], references: [id])
-  submissionId Int        @map("submission_id")
-  result       String
-  acceptedNum  Int        @map("accepted_num")
-  totalScore   Int        @map("total_score")
-  createTime   DateTime   @default(now()) @map("create_time")
-  updateTime   DateTime   @updatedAt @map("update_time")
+  id            Int        @id @default(autoincrement())
+  submission    Submission @relation(fields: [submissionId], references: [id])
+  submissionId  Int        @map("submission_id")
+  result        Result
+  acceptedNum   Int        @map("accepted_num")
+  totalTestcase Int        @map("total_testcase")
+  createTime    DateTime   @default(now()) @map("create_time")
+  updateTime    DateTime   @updatedAt @map("update_time")
+  judgeResult   Json       @map("judge_result")
 
   @@map("submssion_result")
+}
+
+enum Result {
+  ACCEPTED
+  WRONG_ANSWER
+  CPU_TIME_LIMIT_EXCEEDED
+  REAL_TIME_LIMIT_EXCEEDED
+  MEMORY_LIMIT_EXCEEDED
+  RUNTIME_ERROR
+  SYSTEM_ERROR
+  COMPILE_ERROR
 }
