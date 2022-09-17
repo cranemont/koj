@@ -1,10 +1,11 @@
+import { JudgeRequestDto } from './dto/judge-request.dto'
 import {
   AmqpConnection,
   Nack,
   RabbitSubscribe
 } from '@golevelup/nestjs-rabbitmq'
 import { Injectable } from '@nestjs/common'
-import { Submission } from '@prisma/client'
+import { Problem, Submission, Language } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
 import {
@@ -43,11 +44,53 @@ export class SubmissionService {
       }
     })
 
-    this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, submission, {
+    const problem: Partial<Problem> = await this.prisma.problem.findUnique({
+      where: { id: submission.problemId },
+      select: {
+        timeLimit: true,
+        memoryLimit: true
+      }
+    })
+
+    const judgeRequest = new JudgeRequestDto(
+      submission.code,
+      submission.language,
+      submission.problemId,
+      this.getTimeLimitForLanguage(submission.language, problem.timeLimit),
+      this.getMemoryLimitForLanguage(submission.language, problem.memoryLimit)
+    )
+
+    this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, judgeRequest, {
       persistent: true
     })
 
     return submission
+  }
+
+  getTimeLimitForLanguage(language: Language, time: number): number {
+    const table = {
+      [Language.C]: (t: number) => t,
+      [Language.Cpp]: (t: number) => t,
+      [Language.Golang]: (t: number) => t + 2000,
+      [Language.Java]: (t: number) => t * 2 + 1000,
+      [Language.Python2]: (t: number) => t * 3 + 2000,
+      [Language.Python3]: (t: number) => t * 3 + 200
+    }
+
+    return table[language](time)
+  }
+
+  getMemoryLimitForLanguage(language: Language, memory: number): number {
+    const table = {
+      [Language.C]: (m: number) => 1024 * 1024 * m,
+      [Language.Cpp]: (m: number) => 1024 * 1024 * m,
+      [Language.Golang]: (m: number) => 1024 * 1024 * (m * 2 + 512),
+      [Language.Java]: (m: number) => 1024 * 1024 * (m * 2 + 16),
+      [Language.Python2]: (m: number) => 1024 * 1024 * (m * 2 + 32),
+      [Language.Python3]: (m: number) => 1024 * 1024 * (m * 2 + 32)
+    }
+
+    return table[language](memory)
   }
 
   @RabbitSubscribe({
