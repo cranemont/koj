@@ -52,10 +52,12 @@ export class SubmissionService {
   })
   public async submissionResultHandler(message) {
     console.log(`Received message: ${JSON.stringify(message)}`)
-
     // 이 handler(method) 종료되면 ack 보냄
     // 예외 상황 발생할 경우 requeue할 수 있음
     // requeue: return new Nack(true)
     // no requeue: return new Nack()
+
+    //TODO: submission result 업데이트 하는 코드
+    //TODO: server push하는 코드(user id에게)
   }
 }

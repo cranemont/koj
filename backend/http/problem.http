@@ -1,10 +1,10 @@
-GET http://localhost:10010/problem/1 HTTP/1.1
+GET http://backend.localhost/problem/1 HTTP/1.1
 
 ###
-GET http://localhost:10010/problems HTTP/1.1
+GET http://backend.localhost/problems HTTP/1.1
 
 ###
-POST http://localhost:10010/problem HTTP/1.1
+POST http://localhost/api/problem HTTP/1.1
 Content-Type: application/json; charset=UTF-8
 
 {
