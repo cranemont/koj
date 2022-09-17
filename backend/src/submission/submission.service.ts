@@ -1,8 +1,19 @@
-import { AmqpConnection, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq'
+import {
+  AmqpConnection,
+  Nack,
+  RabbitSubscribe
+} from '@golevelup/nestjs-rabbitmq'
 import { Injectable } from '@nestjs/common'
 import { Submission } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
+import {
+  EXCHANGE,
+  SUBMISSION_KEY,
+  RESULT_KEY,
+  RESULT_QUEUE,
+  CONSUME_CHANNEL
+} from './rabbitmq.constants'
 
 @Injectable()
 export class SubmissionService {
@@ -32,32 +43,38 @@ export class SubmissionService {
       }
     })
 
-    this.amqpConnection.publish(
-      'submission-exchange',
-      'submission',
-      submission,
-      { persistent: true }
-    )
+    this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, submission, {
+      persistent: true
+    })
 
     return submission
   }
 
   @RabbitSubscribe({
-    exchange: 'result-exchange',
-    routingKey: 'result',
-    queue: 'result-queue',
+    exchange: EXCHANGE,
+    routingKey: RESULT_KEY,
+    queue: RESULT_QUEUE,
     queueOptions: {
-      channel: 'result-consume-channel'
+      channel: CONSUME_CHANNEL
     }
   })
   public async submissionResultHandler(message) {
     console.log(`Received message: ${JSON.stringify(message)}`)
-    // 이 handler(method) 종료되면 ack 보냄
-    // 예외 상황 발생할 경우 requeue할 수 있음
-    // requeue: return new Nack(true)
-    // no requeue: return new Nack()
 
-    //TODO: submission result 업데이트 하는 코드
+    try {
+      await this.prisma.submissionResult.create({
+        data: {
+          submissionId: 1,
+          result: 'result',
+          acceptedNum: 1,
+          totalScore: 1
+        }
+      })
+    } catch (error) {
+      // requeue
+      return new Nack(true)
+    }
+
     //TODO: server push하는 코드(user id에게)
   }
 }
