@@ -110,15 +110,7 @@ export class SubmissionService {
   })
   public async submissionResultHandler(message) {
     console.log(`Received message: ${JSON.stringify(message)}`)
-    let result: SubmissionResultMessage
-
-    try {
-      result = JSON.parse(message)
-    } catch (error) {
-      // TODO: response error to user
-      // not requeue
-      return new Nack()
-    }
+    let result: SubmissionResultMessage = message
 
     try {
       const data: any = {
