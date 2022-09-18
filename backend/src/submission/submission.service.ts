@@ -5,14 +5,8 @@ import {
   Nack,
   RabbitSubscribe
 } from '@golevelup/nestjs-rabbitmq'
-import { Injectable, Res } from '@nestjs/common'
-import {
-  Problem,
-  Submission,
-  Language,
-  Result,
-  SubmissionResult
-} from '@prisma/client'
+import { Injectable } from '@nestjs/common'
+import { Problem, Submission, Language, Result } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
 import {
@@ -29,7 +23,29 @@ export class SubmissionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly amqpConnection: AmqpConnection
-  ) {}
+  ) {
+    if (process.env?.ENABLE_SUBSCRIBER === 'true') {
+      this.amqpConnection.createSubscriber(
+        async (msg) => {
+          try {
+            await this.submissionResultHandler(msg)
+          } catch (error) {
+            console.log('requeue submission-result message: %s', msg)
+            return new Nack(true)
+          }
+        },
+        {
+          exchange: EXCHANGE,
+          routingKey: RESULT_KEY,
+          queue: RESULT_QUEUE,
+          queueOptions: {
+            channel: CONSUME_CHANNEL
+          }
+        },
+        'original Handler Name'
+      )
+    }
+  }
 
   async createSubmission(ip: string, createSubmissionDto: CreateSubmissionDto) {
     const { languages } = await this.prisma.problem.findUnique({
@@ -100,42 +116,29 @@ export class SubmissionService {
     return this.memoryLimitTable[language](memory)
   }
 
-  @RabbitSubscribe({
-    exchange: EXCHANGE,
-    routingKey: RESULT_KEY,
-    queue: RESULT_QUEUE,
-    queueOptions: {
-      channel: CONSUME_CHANNEL
-    }
-  })
   public async submissionResultHandler(message) {
     console.log(`Received message: ${JSON.stringify(message)}`)
-    let result: SubmissionResultMessage = message
+    const result: SubmissionResultMessage = message
 
-    try {
-      const data: any = {
-        submissionId: result.data.submissionId,
-        acceptedNum: result.data.acceptedNum,
-        totalTestcase: result.data.totalTestcase,
-        judgeResult: message
-      }
-
-      if (result.serverStatusCode == serverStatusCode.COMPILE_ERROR) {
-        data.result = Result.COMPILE_ERROR
-        data.compileErrorMessage = result.data.compileError
-      } else if (result.serverStatusCode === serverStatusCode.SUCCESS) {
-        data.result = this.matchResultCode(result.data.judgeResultCode)
-      } else {
-        data.result = Result.SYSTEM_ERROR
-      }
-
-      await this.prisma.submissionResult.create({
-        data
-      })
-    } catch (error) {
-      // requeue
-      return new Nack(true)
+    const data: any = {
+      submissionId: result.data.submissionId,
+      acceptedNum: result.data.acceptedNum,
+      totalTestcase: result.data.totalTestcase,
+      judgeResult: message
     }
+
+    if (result.serverStatusCode == serverStatusCode.COMPILE_ERROR) {
+      data.result = Result.COMPILE_ERROR
+      data.compileErrorMessage = result.data.compileError
+    } else if (result.serverStatusCode === serverStatusCode.SUCCESS) {
+      data.result = this.matchResultCode(result.data.judgeResultCode)
+    } else {
+      data.result = Result.SYSTEM_ERROR
+    }
+
+    await this.prisma.submissionResult.create({
+      data
+    })
 
     //TODO: server push하는 코드(user id에게)
   }

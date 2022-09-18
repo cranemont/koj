@@ -10,21 +10,34 @@ import {
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     RabbitMQModule.forRootAsync(RabbitMQModule, {
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        uri: config.get('AMQP_URI'),
-        channels: {
-          [PUBLISH_CHANNEL]: {
-            prefetchCount: 1,
-            default: true
-          },
-          [CONSUME_CHANNEL]: {
-            prefetchCount: 1
-          }
-        },
-        connectionInitOptions: { wait: false }
-      }),
+      useFactory: (config: ConfigService) => {
+        const channels =
+          process.env?.ENABLE_SUBSCRIBER === 'true'
+            ? {
+                [PUBLISH_CHANNEL]: {
+                  prefetchCount: 1,
+                  default: true
+                },
+                [CONSUME_CHANNEL]: {
+                  prefetchCount: 1
+                }
+              }
+            : {
+                [PUBLISH_CHANNEL]: {
+                  prefetchCount: 1,
+                  default: true
+                }
+              }
+
+        return {
+          uri: config.get('AMQP_URI'),
+          channels,
+          connectionInitOptions: { wait: false }
+        }
+      },
       inject: [ConfigService]
     })
   ],
