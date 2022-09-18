@@ -17,9 +17,10 @@ services:
     networks:
       - web
       - default
+    ports:
+      - 15672:15672
     expose:
       - 5672
-      - 15672
     environment:
       - RABBITMQ_ERLANG_COOKIE=RabbitMQ-My-Cookies
       - RABBITMQ_DEFAULT_USER=skku
@@ -31,6 +32,20 @@ services:
       - 'traefik.docker.network=traefik_default'
       - 'traefik.http.routers.rabbitmq.entrypoints=websecure'
       - 'traefik.http.routers.rabbitmq.tls.certresolver=myresolver'
+  setup:
+    image: python:3.8-alpine
+    depends_on:
+      - rabbitmq
+    networks:
+      - web
+      - default
+    volumes:
+      - ./scripts/rabbitmq-setup.sh:/setup.sh
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    entrypoint:
+      - /setup.sh
   redis:
     container_name: redis
     image: redis:alpine
@@ -45,6 +60,7 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - setup
     expose:
       - 3000
     environment:
@@ -68,6 +84,7 @@ services:
     depends_on:
       - redis
       - rabbitmq
+      - setup
     environment:
       - TESTCASE_SERVER_URL=http://backend:3000/testcase/problem/
       - TESTCASE_SERVER_AUTH_TOKEN=AUTH_TOKEN
