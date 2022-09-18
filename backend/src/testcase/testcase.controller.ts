@@ -30,7 +30,6 @@ export class TestcaseController {
 
   @Post('testcases')
   async createTestCases(@Body() createTestcasesDto: CreateTestcasesDto) {
-    console.log(createTestcasesDto.problemId)
     return this.testcaseService.createTestcases(createTestcasesDto)
   }
 }

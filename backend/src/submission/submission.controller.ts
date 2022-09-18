@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
 import { SubmissionService } from './submission.service'
-import { Request } from 'express'
+import e, { Request } from 'express'
 
 @Controller('submission')
 export class SubmissionController {
@@ -24,6 +24,7 @@ export class SubmissionController {
         createSubmissionDto
       )
     } catch (error) {
+      console.log(error)
       throw new InternalServerErrorException()
     }
   }
