@@ -42,7 +42,6 @@ export class TestcaseService {
 
   async createTestcases(dto: CreateTestcasesDto) {
     const { problemId, testcases } = dto
-    console.log(testcases)
     const data: CreateTestcaseDto[] = testcases.map((val, idx) => {
       const ret: CreateTestcaseDto = <CreateTestcaseDto>val
       ret.order = idx

@@ -36,7 +36,7 @@ model Problem {
 }
 
 model Testcase {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   problem    Problem  @relation(fields: [problemId], references: [id])
   problemId  Int      @map("problem_id")
   order      Int

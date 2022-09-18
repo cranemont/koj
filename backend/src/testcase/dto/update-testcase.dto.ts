@@ -1,5 +1,5 @@
 export class UpdateTestCaseDto {
-  id: number
+  id: string
   problemId: number
   order: number
   input: string

@@ -14,7 +14,7 @@ export class TestcaseController {
   constructor(private readonly testcaseService: TestcaseService) {}
 
   @Get('testcase/:id')
-  async getTestcase(@Param('id', ParseIntPipe) id: number) {
+  async getTestcase(@Param('id') id: string) {
     return this.testcaseService.getTestcase({ id })
   }
 
