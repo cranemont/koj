@@ -12,14 +12,11 @@ services:
       - POSTGRES_DB=skku
     expose:
       - 5432
-    # ports:
-    #   - 20000:5432
   rabbitmq:
     image: rabbitmq:3-management-alpine
     networks:
       - web
       - default
-    # container_name: rabbitmq
     expose:
       - 5672
       - 15672
@@ -28,25 +25,26 @@ services:
       - RABBITMQ_DEFAULT_USER=skku
       - RABBITMQ_DEFAULT_PASS=1234
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rabbitmq.rule=PathPrefix(`/rmq`)"
-      - "traefik.http.middlewares.remove-rmq-prefix.stripprefix.prefixes=/rmq,/"
-      - "traefik.http.routers.rabbitmq.middlewares=remove-rmq-prefix@docker"
-      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
-      - "traefik.docker.network=traefik_default"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.localhost`)'
+      - 'traefik.http.services.rabbitmq.loadbalancer.server.port=15672'
+      - 'traefik.docker.network=traefik_default'
+      - 'traefik.http.routers.rabbitmq.entrypoints=websecure'
+      - 'traefik.http.routers.rabbitmq.tls.certresolver=myresolver'
   redis:
     container_name: redis
     image: redis:alpine
-    ports: 
-      - 6379:6379
+    expose:
+      - 6379
   backend:
-    image: coc0a25/next-backend:dev
+    image: coc0a25/next-backend:deploy
     networks:
       - web
       - default
-    # restart: unless-stopped
-    # ports:
-    #   - 20001:3000
+    restart: always
+    depends_on:
+      - db
+      - rabbitmq
     expose:
       - 3000
     environment:
@@ -55,17 +53,23 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.middlewares.remove-api-prefix.stripprefix.prefixes=/api,/"
-      - "traefik.http.routers.backend.middlewares=remove-api-prefix@docker"
-      - "traefik.http.services.backend.loadbalancer.server.port=3000"
-      - "traefik.docker.network=traefik_default"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.backend.rule=PathPrefix(`/api`)'
+      - 'traefik.http.middlewares.remove-api-prefix.stripprefix.prefixes=/api,/'
+      - 'traefik.http.routers.backend.middlewares=remove-api-prefix@docker'
+      - 'traefik.http.services.backend.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.backend.entrypoints=websecure'
+      - 'traefik.http.routers.backend.tls.certresolver=myresolver'
+      - 'traefik.docker.network=traefik_default'
   judge-server:
     # container_name: judge-server
-    image: coc0a25/judge-server:dev
+    image: coc0a25/judge-server:deploy
+    restart: always
+    depends_on:
+      - redis
+      - rabbitmq
     environment:
-      - TESTCASE_SERVER_URL=http://backend.api/testcase/problem/
+      - TESTCASE_SERVER_URL=http://backend:3000/testcase/problem/
       - TESTCASE_SERVER_AUTH_TOKEN=AUTH_TOKEN
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -73,28 +77,12 @@ services:
       - RABBITMQ_DEFAULT_PASS=1234
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-    cpuset: "0,1,2"
+    # cpuset: "0,1,2"
+    expose:
+      - 10000
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=inbound'
 networks:
   web:
     name: traefik_default
-  
-
-  # backend2:
-  #   image: coc0a25/next-backend:dev
-  #   container_name: nest2
-  #   restart: unless-stopped
-  #   ports:
-  #     - 10002:3000
-  # backend3:
-  #   image: coc0a25/next-backend:dev
-  #   container_name: nest3
-  #   restart: unless-stopped
-  #   ports:
-  #     - 10003:3000
-  # backend4:
-  #   image: coc0a25/next-backend:dev
-  #   container_name: nest4
-  #   restart: unless-stopped
-  #   ports:
-  #     - 10004:3000
-

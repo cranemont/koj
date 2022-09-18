@@ -5,46 +5,32 @@ services:
     # The official v2 Traefik docker image
     image: traefik:v2.8
     # Enables the web UI and tells Traefik to listen to docker
-    command: 
-      # - "--api.insecure=true"
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--metrics.prometheus=true"
-      - "--entrypoints.webinsecure.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.email=test@naver.com"
-      - "--certificatesresolvers.myresolver.acme.storage=acme.json"
+    command:
+      - '--api.insecure=false'
+      - '--api.dashboard=true'
+      - '--providers.docker=true'
+      # - '--providers.docker.exposedByDefault=false'
+      - '--metrics.prometheus=true'
+      - '--entrypoints.webinsecure.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.myresolver.acme.email=test@naver.com'
+      - '--certificatesresolvers.myresolver.acme.storage=acme.json'
       # used during the challenge
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=websecure"
+      - '--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=webinsecure'
       # redirection to https
-      # - "--entrypoints.webinsecure.http.redirections.entrypoint.to=websecure"
-      # - "--entrypoints.webinsecure.http.redirections.entrypoint.scheme=https"
+      - '--entrypoints.webinsecure.http.redirections.entrypoint.to=websecure'
+      - '--entrypoints.webinsecure.http.redirections.entrypoint.scheme=https'
     ports:
-      # The HTTP port
-      - "80:80"
-      - "443:443"
-      # The Web UI (enabled by --api.insecure=true)
-      # - "8080:8080"
+      - '80:80'
+      - '443:443'
     volumes:
-      # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock
       - ./acme.json:/etc/traefik/acme.json
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.traefik_https.rule=Host(`traefik.localhost`)"
-    #   - "traefik.http.routers.traefik_https.tls=true"
-    #   - "traefik.http.routers.traefik_https.tls.certresolver=myresolver"
-    #   - "traefik.http.routers.traefik_https.service=api@internal"
-    #   - "traefik.http.routers.traefik_https.middlewares=auth"
-    #   - "traefik.http.middlewares.auth.basicauth.users=root:$$apr1$$IjG5//8U$$3TvwOzXvGtQ2scJC3GgFf."
-  whoami:
-    # A container that exposes an API to show its IP address
-    image: traefik/whoami
     labels:
-      - "traefik.http.routers.whoami.rule=Host(`traefik.localhost`)"
-      - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
-      - "traefik.http.routers.whoami.service=api@internal"
-      - "traefik.http.routers.whoami.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=root:$$apr1$$IjG5//8U$$3TvwOzXvGtQ2scJC3GgFf."
-      
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.traefik_https.rule=Host(`traefik.localhost`)'
+      - 'traefik.http.routers.traefik_https.tls=true'
+      - 'traefik.http.routers.traefik_https.tls.certresolver=myresolver'
+      - 'traefik.http.routers.traefik_https.service=api@internal'
+      - 'traefik.http.routers.traefik_https.middlewares=auth'
+      - 'traefik.http.middlewares.auth.basicauth.users=root:$$apr1$$IjG5//8U$$3TvwOzXvGtQ2scJC3GgFf.'
