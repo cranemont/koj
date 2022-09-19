@@ -30,7 +30,11 @@ export class SubmissionService {
           try {
             await this.submissionResultHandler(msg)
           } catch (error) {
-            console.log('requeue submission-result message: %s', msg)
+            console.log(
+              'requeue submission-result message: %s with %s',
+              msg,
+              error
+            )
             return new Nack(true)
           }
         },
