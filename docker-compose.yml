@@ -20,7 +20,7 @@ services:
     environment:
       - DB_USER=skku
       - DB_PASSWORD=skku
-      - DB_HOST=posgres
+      - DB_HOST=postgres
       - DB_NAME=skku
       - POOL_MODE=transaction
       - ADMIN_USERS=postgres,skku
