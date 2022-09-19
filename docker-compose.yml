@@ -12,6 +12,26 @@ services:
       - POSTGRES_DB=skku
     expose:
       - 5432
+  pgbouncer:
+    image: edoburu/pgbouncer:1.17.0
+    container_name: pgbouncer
+    depends_on:
+      - db
+    environment:
+      - DB_USER=skku
+      - DB_PASSWORD=skku
+      - DB_HOST=posgres
+      - DB_NAME=skku
+      - POOL_MODE=transaction
+      - ADMIN_USERS=postgres,skku
+      - DB_PORT=5432
+      - MIN_POOL_SIZE=30
+      - DEFAULT_POOL_SIZE=40
+      - MAX_CLIENT_CONN=2000
+      - SERVER_CHECK_DELAY=100
+    expose:
+      - 5432
+    
   rabbitmq:
     image: rabbitmq:3-management-alpine
     networks:
