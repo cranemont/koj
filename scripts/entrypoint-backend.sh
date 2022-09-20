@@ -14,9 +14,9 @@ if [ -n "$POSTGRES_USER" ] && \
 then
     echo "DATABASE_URL=postgresql://"$POSTGRES_USER":"$POSTGRES_PASSWORD"@"$POSTGRES_HOST":"$POSTGRES_PORT"/"$POSTGRES_DB"?schema=public&pgbouncer=true" > backend/.env
 else
-    echo "DATABASE_URL=postgresql://skku:skku@postgres:6432/skku?schema=public&pgbouncer=true" > backend/.env
-    POSTGRES_HOST=pgbouncer
-    POSTGRES_PORT=6432
+    echo "DATABASE_URL=postgresql://skku:skku@pgbouncer:6432/skku?schema=public&pgbouncer=true" > backend/.env
+    POSTGRES_HOST=postgres
+    POSTGRES_PORT=5432
 fi
 
 if [ -n "$RABBITMQ_USER" ] && \
