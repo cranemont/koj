@@ -30,7 +30,7 @@ services:
       - MAX_CLIENT_CONN=2000
       - SERVER_CHECK_DELAY=100
     expose:
-      - 5432
+      - 6432
     
   rabbitmq:
     image: rabbitmq:3-management-alpine
