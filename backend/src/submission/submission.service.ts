@@ -1,12 +1,9 @@
+import { UpdateSubmissionResultData } from './dto/update-submission-result'
 import { SubmissionResultMessage } from './dto/submission-result-message'
 import { JudgeRequestDto } from './dto/judge-request.dto'
-import {
-  AmqpConnection,
-  Nack,
-  RabbitSubscribe
-} from '@golevelup/nestjs-rabbitmq'
+import { AmqpConnection, Nack } from '@golevelup/nestjs-rabbitmq'
 import { Injectable } from '@nestjs/common'
-import { Problem, Submission, Language, Result } from '@prisma/client'
+import { Problem, Submission, Language, JudgeResultCode, SubmissionResult } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
 import {
@@ -16,7 +13,6 @@ import {
   RESULT_QUEUE,
   CONSUME_CHANNEL
 } from './constants/rabbitmq.constants'
-import { serverStatusCode } from './constants/judgeResult.constants'
 
 @Injectable()
 export class SubmissionService {
@@ -72,6 +68,13 @@ export class SubmissionService {
       }
     })
 
+    await this.publishJudgeRequestMessage(submission)
+    await this.createSubmissionResult(submission.id)
+
+    return submission
+  }
+
+  private async publishJudgeRequestMessage(submission: Submission) {
     const problem: Partial<Problem> = await this.prisma.problem.findUnique({
       where: { id: submission.problemId },
       select: {
@@ -92,8 +95,6 @@ export class SubmissionService {
     this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, judgeRequest, {
       persistent: true
     })
-
-    return submission
   }
 
   private readonly cpuLimitTable = {
@@ -120,49 +121,76 @@ export class SubmissionService {
     return this.memoryLimitTable[language](memory)
   }
 
-  public async submissionResultHandler(message) {
-    console.log(`Received message: ${JSON.stringify(message)}`)
-    const result: SubmissionResultMessage = message
-
-    const data: any = {
-      submissionId: result.data.submissionId,
-      acceptedNum: result.data.acceptedNum,
-      totalTestcase: result.data.totalTestcase,
-      judgeResult: message
-    }
-
-    if (result.serverStatusCode == serverStatusCode.COMPILE_ERROR) {
-      data.result = Result.COMPILE_ERROR
-      data.compileErrorMessage = result.data.compileError
-    } else if (result.serverStatusCode === serverStatusCode.SUCCESS) {
-      data.result = this.matchResultCode(result.data.judgeResultCode)
-    } else {
-      data.result = Result.SYSTEM_ERROR
-    }
-
-    await this.prisma.submissionResult.create({
-      data
+  private async createSubmissionResult(submissionId: number) {
+    const submissionResult = await this.prisma.submissionResult.create({
+      data: {
+        submission: {
+          connect: { id: submissionId }
+        },
+        judgeResultCode: JudgeResultCode.JUDGING
+      }
     })
+
+    return submissionResult
+  }
+
+  public async submissionResultHandler(msg: any) {
+    console.log(`Received message: ${JSON.stringify(msg)}`)
+    const message: SubmissionResultMessage = msg
+    const judgeResultCode: JudgeResultCode = this.matchJudgeResultCode(
+      message.judgeResultCode
+    )
+
+    const data = new UpdateSubmissionResultData(judgeResultCode)
+
+    switch (judgeResultCode) {
+      case JudgeResultCode.SERVER_ERROR:
+      case JudgeResultCode.COMPILE_ERROR:
+        data.errorMessage = message.error
+        break
+      default:
+        data.acceptedNum = message.data.acceptedNum
+        data.totalTestcase = message.data.totalTestcase
+        data.judgeResult = JSON.stringify(message.data.judgeResult)
+    }
+
+    await this.updateSubmissionResult(message.submissionResultId, data)
 
     //TODO: server push하는 코드(user id에게)
   }
 
-  private matchResultCode(code: number): Result {
+  private matchJudgeResultCode(code: number): JudgeResultCode {
     switch (code) {
       case 0:
-        return Result.ACCEPTED
+        return JudgeResultCode.ACCEPTED
       case 1:
-        return Result.WRONG_ANSWER
+        return JudgeResultCode.WRONG_ANSWER
       case 2:
-        return Result.CPU_TIME_LIMIT_EXCEEDED
+        return JudgeResultCode.CPU_TIME_LIMIT_EXCEEDED
       case 3:
-        return Result.REAL_TIME_LIMIT_EXCEEDED
+        return JudgeResultCode.REAL_TIME_LIMIT_EXCEEDED
       case 4:
-        return Result.MEMORY_LIMIT_EXCEEDED
+        return JudgeResultCode.MEMORY_LIMIT_EXCEEDED
       case 5:
-        return Result.RUNTIME_ERROR
+        return JudgeResultCode.RUNTIME_ERROR
+      case 6:
+        return JudgeResultCode.COMPILE_ERROR
       default:
-        return Result.SYSTEM_ERROR
+        return JudgeResultCode.SERVER_ERROR
     }
+  }
+
+  private async updateSubmissionResult(
+    id: number,
+    data: UpdateSubmissionResultData
+  ): Promise<SubmissionResult> {
+    return await this.prisma.submissionResult.update({
+      where: {
+        id
+      },
+      data: {
+        ...data
+      }
+    })
   }
 }

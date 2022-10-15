@@ -1,18 +1,17 @@
 export class SubmissionResultMessage {
-  serverStatusCode: number
+  judgeResultCode: number
+  submissionResultId: number
+  error: string
   data: JudgeData
 }
 
 interface JudgeData {
-  submissionId: number
-  compileError: string
   acceptedNum: number
   totalTestcase: number
-  judgeResultCode: number
-  runResult: RunResult[]
+  judgeResult: JudgeResult[]
 }
 
-interface RunResult {
+export interface JudgeResult {
   testcaseId: string
   resultCode: number
   cpuTime: number

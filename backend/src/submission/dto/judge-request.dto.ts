@@ -6,6 +6,7 @@ export class JudgeRequestDto {
   problemId: number
   timeLimit: number
   memoryLimit: number
+  judgeMode: string
 
   constructor(id, code, language, problemId, timeLimit, memoryLimit) {
     this.submissionId = id
