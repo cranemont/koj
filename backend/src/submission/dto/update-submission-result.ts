@@ -1,8 +1,8 @@
-import { JudgeResultCode } from '@prisma/client'
+import { ResultCode } from '@prisma/client'
 
 export class UpdateSubmissionResultData {
   // required
-  judgeResultCode: JudgeResultCode
+  resultCode: ResultCode
 
   // compile error of server error
   errorMessage?: string
@@ -12,7 +12,7 @@ export class UpdateSubmissionResultData {
   totalTestcase?: number
   judgeResult?: string
 
-  constructor(judgeResultCode: JudgeResultCode) {
-    this.judgeResultCode = judgeResultCode
+  constructor(resultCode: ResultCode) {
+    this.resultCode = resultCode
   }
 }

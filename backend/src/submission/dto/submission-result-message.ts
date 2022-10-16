@@ -1,7 +1,16 @@
+import { IsNotEmpty } from 'class-validator'
+
 export class SubmissionResultMessage {
-  judgeResultCode: number
+  @IsNotEmpty()
+  resultCode: number
+
+  @IsNotEmpty()
   submissionResultId: number
+
+  @IsNotEmpty()
   error: string
+
+  @IsNotEmpty()
   data: JudgeData
 }
 

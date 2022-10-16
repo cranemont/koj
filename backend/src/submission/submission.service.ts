@@ -3,7 +3,7 @@ import { SubmissionResultMessage } from './dto/submission-result-message'
 import { JudgeRequestDto } from './dto/judge-request.dto'
 import { AmqpConnection, Nack } from '@golevelup/nestjs-rabbitmq'
 import { Injectable } from '@nestjs/common'
-import { Problem, Submission, Language, JudgeResultCode, SubmissionResult } from '@prisma/client'
+import { Problem, Submission, Language, ResultCode, SubmissionResult } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
 import {
@@ -80,7 +80,7 @@ export class SubmissionService {
         submission: {
           connect: { id: submissionId }
         },
-        judgeResultCode: JudgeResultCode.JUDGING
+        resultCode: ResultCode.JUDGING
       }
     })
 
@@ -142,15 +142,13 @@ export class SubmissionService {
     console.log(`Received message: ${JSON.stringify(msg)}`)
     // message validation
     const message: SubmissionResultMessage = msg
-    const judgeResultCode: JudgeResultCode = this.matchJudgeResultCode(
-      message.judgeResultCode
-    )
+    const resultCode: ResultCode = this.matchResultCode(message.resultCode)
 
-    const data = new UpdateSubmissionResultData(judgeResultCode)
+    const data = new UpdateSubmissionResultData(resultCode)
 
-    switch (judgeResultCode) {
-      case JudgeResultCode.SERVER_ERROR:
-      case JudgeResultCode.COMPILE_ERROR:
+    switch (resultCode) {
+      case ResultCode.SERVER_ERROR:
+      case ResultCode.COMPILE_ERROR:
         data.errorMessage = message.error
         break
       default:
@@ -164,24 +162,24 @@ export class SubmissionService {
     //TODO: server push하는 코드(user id에게)
   }
 
-  private matchJudgeResultCode(code: number): JudgeResultCode {
+  private matchResultCode(code: number): ResultCode {
     switch (code) {
       case 0:
-        return JudgeResultCode.ACCEPTED
+        return ResultCode.ACCEPTED
       case 1:
-        return JudgeResultCode.WRONG_ANSWER
+        return ResultCode.WRONG_ANSWER
       case 2:
-        return JudgeResultCode.CPU_TIME_LIMIT_EXCEEDED
+        return ResultCode.CPU_TIME_LIMIT_EXCEEDED
       case 3:
-        return JudgeResultCode.REAL_TIME_LIMIT_EXCEEDED
+        return ResultCode.REAL_TIME_LIMIT_EXCEEDED
       case 4:
-        return JudgeResultCode.MEMORY_LIMIT_EXCEEDED
+        return ResultCode.MEMORY_LIMIT_EXCEEDED
       case 5:
-        return JudgeResultCode.RUNTIME_ERROR
+        return ResultCode.RUNTIME_ERROR
       case 6:
-        return JudgeResultCode.COMPILE_ERROR
+        return ResultCode.COMPILE_ERROR
       default:
-        return JudgeResultCode.SERVER_ERROR
+        return ResultCode.SERVER_ERROR
     }
   }
 
