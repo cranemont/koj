@@ -109,7 +109,7 @@ export class SubmissionService {
 
     this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, judgeRequest, {
       persistent: true,
-      messageId: resultId,
+      messageId: resultId.toString(),
       type: 'Judge'
     })
   }
