@@ -5,7 +5,7 @@ export class SubmissionResultMessage {
   resultCode: number
 
   @IsNotEmpty()
-  submissionResultId: number
+  submissionResultId: string
 
   @IsNotEmpty()
   error: string

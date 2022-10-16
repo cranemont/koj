@@ -3,7 +3,13 @@ import { SubmissionResultMessage } from './dto/submission-result-message'
 import { JudgeRequestDto } from './dto/judge-request.dto'
 import { AmqpConnection, Nack } from '@golevelup/nestjs-rabbitmq'
 import { Injectable } from '@nestjs/common'
-import { Problem, Submission, Language, ResultCode, SubmissionResult } from '@prisma/client'
+import {
+  Problem,
+  Submission,
+  Language,
+  ResultCode,
+  SubmissionResult
+} from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreateSubmissionDto } from './dto/create-submission.dto'
 import {
@@ -157,7 +163,8 @@ export class SubmissionService {
         data.judgeResult = JSON.stringify(message.data.judgeResult)
     }
 
-    await this.updateSubmissionResult(message.submissionResultId, data)
+    const submissionResultId: number = parseInt(message.submissionResultId, 10)
+    await this.updateSubmissionResult(submissionResultId, data)
 
     //TODO: server push하는 코드(user id에게)
   }
