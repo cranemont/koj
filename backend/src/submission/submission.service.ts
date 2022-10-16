@@ -68,13 +68,29 @@ export class SubmissionService {
       }
     })
 
-    await this.publishJudgeRequestMessage(submission)
-    await this.createSubmissionResult(submission.id)
+    const result = await this.createSubmissionResult(submission.id)
+    await this.publishJudgeRequestMessage(submission, result.id)
 
     return submission
   }
 
-  private async publishJudgeRequestMessage(submission: Submission) {
+  private async createSubmissionResult(submissionId: number) {
+    const submissionResult = await this.prisma.submissionResult.create({
+      data: {
+        submission: {
+          connect: { id: submissionId }
+        },
+        judgeResultCode: JudgeResultCode.JUDGING
+      }
+    })
+
+    return submissionResult
+  }
+
+  private async publishJudgeRequestMessage(
+    submission: Submission,
+    resultId: number
+  ) {
     const problem: Partial<Problem> = await this.prisma.problem.findUnique({
       where: { id: submission.problemId },
       select: {
@@ -84,7 +100,6 @@ export class SubmissionService {
     })
 
     const judgeRequest = new JudgeRequestDto(
-      submission.id,
       submission.code,
       submission.language,
       submission.problemId,
@@ -93,7 +108,9 @@ export class SubmissionService {
     )
 
     this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, judgeRequest, {
-      persistent: true
+      persistent: true,
+      messageId: resultId,
+      type: 'Judge'
     })
   }
 
@@ -121,21 +138,9 @@ export class SubmissionService {
     return this.memoryLimitTable[language](memory)
   }
 
-  private async createSubmissionResult(submissionId: number) {
-    const submissionResult = await this.prisma.submissionResult.create({
-      data: {
-        submission: {
-          connect: { id: submissionId }
-        },
-        judgeResultCode: JudgeResultCode.JUDGING
-      }
-    })
-
-    return submissionResult
-  }
-
   public async submissionResultHandler(msg: any) {
     console.log(`Received message: ${JSON.stringify(msg)}`)
+    // message validation
     const message: SubmissionResultMessage = msg
     const judgeResultCode: JudgeResultCode = this.matchJudgeResultCode(
       message.judgeResultCode

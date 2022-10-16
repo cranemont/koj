@@ -1,6 +1,5 @@
 import { Language } from '@prisma/client'
 export class JudgeRequestDto {
-  submissionId: number
   code: string
   language: Language
   problemId: number
@@ -8,8 +7,7 @@ export class JudgeRequestDto {
   memoryLimit: number
   judgeMode: string
 
-  constructor(id, code, language, problemId, timeLimit, memoryLimit) {
-    this.submissionId = id
+  constructor(code, language, problemId, timeLimit, memoryLimit) {
     this.code = code
     this.language = language
     this.problemId = problemId
