@@ -1,10 +1,12 @@
-GET http://backend.localhost/problem/1 HTTP/1.1
+GET https://nother.ml/api/problem/1 HTTP/1.1
 
 ###
-GET http://backend.localhost/problems HTTP/1.1
+GET https://skkuding.dev/api/problems HTTP/1.1
 
 ###
-POST http://localhost/api/problem HTTP/1.1
+# POST https://skkuding.dev/api/problem
+# POST https://localhost/api/problem
+POST https://nother.ml/api/problem
 Content-Type: application/json; charset=UTF-8
 
 {
@@ -13,7 +15,7 @@ Content-Type: application/json; charset=UTF-8
   "inputDescription": "none",
   "outputDescription": "print hello world",
   "hint": "hint",
-  "languages": ["Cpp", "Python3"],
+  "languages": ["C", "Cpp", "Python3"],
   "timeLimit": 1000,
   "memoryLimit": 256,
   "difficulty": "Level1",

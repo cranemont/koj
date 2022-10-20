@@ -1,7 +1,8 @@
 import { ResultCode } from '@prisma/client'
 
-export class UpdateSubmissionResultData {
+export class CreateSubmissionResultData {
   // required
+  submissionId: number
   resultCode: ResultCode
 
   // compile error of server error
@@ -12,7 +13,8 @@ export class UpdateSubmissionResultData {
   totalTestcase?: number
   judgeResult?: string
 
-  constructor(resultCode: ResultCode) {
+  constructor(submissionId: number, resultCode: ResultCode) {
+    this.submissionId = submissionId
     this.resultCode = resultCode
   }
 }

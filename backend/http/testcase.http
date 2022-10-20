@@ -1,10 +1,12 @@
 GET http://localhost:10010/testcase/1 HTTP/1.1
 
 ###
-GET http://localhost:10010/testcase/problem/1 HTTP/1.1
+GET https://nother.ml/api/testcase/problem/1 HTTP/1.1
 
 ###
-POST http://localhost:10010/testcases HTTP/1.1
+# POST https://skkuding.dev/api/testcases HTTP/1.1
+# POST https://localhost/api/testcases HTTP/1.1
+POST https://nother.ml/api/testcases
 Content-Type: application/json; charset=UTF-8
 
 {

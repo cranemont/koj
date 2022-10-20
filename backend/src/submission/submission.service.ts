@@ -1,4 +1,4 @@
-import { UpdateSubmissionResultData } from './dto/update-submission-result'
+import { CreateSubmissionResultData } from './dto/create-submission-result'
 import { SubmissionResultMessage } from './dto/submission-result-message'
 import { JudgeRequestDto } from './dto/judge-request.dto'
 import { AmqpConnection, Nack } from '@golevelup/nestjs-rabbitmq'
@@ -54,6 +54,7 @@ export class SubmissionService {
   }
 
   async createSubmission(ip: string, createSubmissionDto: CreateSubmissionDto) {
+    // error handling
     const { languages } = await this.prisma.problem.findUnique({
       where: { id: createSubmissionDto.problemId },
       select: { languages: true }
@@ -74,29 +75,27 @@ export class SubmissionService {
       }
     })
 
-    const result = await this.createSubmissionResult(submission.id)
-    await this.publishJudgeRequestMessage(submission, result.id)
+    // const result = await this.createSubmissionResult(submission.id)
+    await this.publishJudgeRequestMessage(submission)
 
     return submission
   }
 
-  private async createSubmissionResult(submissionId: number) {
-    const submissionResult = await this.prisma.submissionResult.create({
-      data: {
-        submission: {
-          connect: { id: submissionId }
-        },
-        resultCode: ResultCode.JUDGING
-      }
-    })
+  // private async createSubmissionResult(submissionId: number) {
+  //   const submissionResult = await this.prisma.submissionResult.create({
+  //     data: {
+  //       submission: {
+  //         connect: { id: submissionId }
+  //       },
+  //       resultCode: ResultCode.JUDGING
+  //     }
+  //   })
 
-    return submissionResult
-  }
+  //   return submissionResult
+  // }
 
-  private async publishJudgeRequestMessage(
-    submission: Submission,
-    resultId: number
-  ) {
+  private async publishJudgeRequestMessage(submission: Submission) {
+    // TODO: caching
     const problem: Partial<Problem> = await this.prisma.problem.findUnique({
       where: { id: submission.problemId },
       select: {
@@ -115,7 +114,7 @@ export class SubmissionService {
 
     this.amqpConnection.publish(EXCHANGE, SUBMISSION_KEY, judgeRequest, {
       persistent: true,
-      messageId: resultId.toString(),
+      messageId: submission.id.toString(),
       type: 'Judge'
     })
   }
@@ -148,9 +147,10 @@ export class SubmissionService {
     console.log(`Received message: ${JSON.stringify(msg)}`)
     // message validation
     const message: SubmissionResultMessage = msg
+    const submissionId: number = parseInt(message.submissionId, 10)
     const resultCode: ResultCode = this.matchResultCode(message.resultCode)
 
-    const data = new UpdateSubmissionResultData(resultCode)
+    const data = new CreateSubmissionResultData(submissionId, resultCode)
 
     switch (resultCode) {
       case ResultCode.SERVER_ERROR:
@@ -162,11 +162,17 @@ export class SubmissionService {
         data.totalTestcase = message.data.totalTestcase
         data.judgeResult = JSON.stringify(message.data.judgeResult)
     }
-
-    const submissionResultId: number = parseInt(message.submissionResultId, 10)
-    await this.updateSubmissionResult(submissionResultId, data)
+    await this.createSubmissionResult(data)
 
     //TODO: server push하는 코드(user id에게)
+  }
+
+  private async createSubmissionResult(data: CreateSubmissionResultData) {
+    const submissionResult = await this.prisma.submissionResult.create({
+      data
+    })
+
+    return submissionResult
   }
 
   private matchResultCode(code: number): ResultCode {
@@ -190,17 +196,17 @@ export class SubmissionService {
     }
   }
 
-  private async updateSubmissionResult(
-    id: number,
-    data: UpdateSubmissionResultData
-  ): Promise<SubmissionResult> {
-    return await this.prisma.submissionResult.update({
-      where: {
-        id
-      },
-      data: {
-        ...data
-      }
-    })
-  }
+  // private async updateSubmissionResult(
+  //   id: number,
+  //   data: UpdateSubmissionResultData
+  // ): Promise<SubmissionResult> {
+  //   return await this.prisma.submissionResult.update({
+  //     where: {
+  //       id
+  //     },
+  //     data: {
+  //       ...data
+  //     }
+  //   })
+  // }
 }
