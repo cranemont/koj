@@ -1,3 +1,4 @@
+import { MessageFormatError } from './type.error';
 import { UpdateSubmissionResultData } from './dto/update-submission-result'
 import { SubmissionResultMessage } from './dto/submission-result-message'
 import { JudgeRequestDto } from './dto/judge-request.dto'
@@ -19,6 +20,7 @@ import {
   RESULT_QUEUE,
   CONSUME_CHANNEL
 } from './constants/rabbitmq.constants'
+import { validate, ValidationError } from 'class-validator'
 
 @Injectable()
 export class SubmissionService {
@@ -32,12 +34,21 @@ export class SubmissionService {
           try {
             await this.submissionResultHandler(msg)
           } catch (error) {
-            console.log(
-              'requeue submission-result message: %s with %s',
-              msg,
-              error
-            )
-            return new Nack(true)
+            if (error instanceof MessageFormatError){
+              console.log(
+                'Dont requeue. message format error: %s with %s',
+                msg,
+                error
+              )
+              return new Nack()
+            } else {
+              console.log(
+                'Requeue submission-result message: %s with %s',
+                msg,
+                error
+              )
+              return new Nack(true)
+            }
           }
         },
         {
@@ -148,8 +159,13 @@ export class SubmissionService {
     console.log(`Received message: ${JSON.stringify(msg)}`)
     // message validation
     const message: SubmissionResultMessage = msg
-    const resultCode: ResultCode = this.matchResultCode(message.resultCode)
+    const validationError: ValidationError[] = await validate(message)
 
+    if (validationError.length > 0) {
+      throw new MessageFormatError({ ...validationError })
+    }
+
+    const resultCode: ResultCode = this.matchResultCode(message.resultCode)
     const data = new UpdateSubmissionResultData(resultCode)
 
     switch (resultCode) {
